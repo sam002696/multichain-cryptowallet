@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router";
 import RouteGuard from "./components/auth/RouteGuard/RouteGuard";
 import AuthHome from "./components/auth/AuthHome/AuthHome";
 import PasswordUnlock from "./components/wallet/Unlock/PasswordUnlock";
+import WalletDashboard from "./components/wallet/WalletDashboard/WalletDashboard";
 
 function App() {
   return (
@@ -16,6 +17,13 @@ function App() {
         <Route path="/unlock" element={<RouteGuard target="unlock" />}>
           <Route index element={<PasswordUnlock />} />
         </Route>
+
+        <Route path="/wallet" element={<RouteGuard target="wallet" />}>
+          <Route index element={<WalletDashboard />} />
+        </Route>
+
+        {/* Default Route */}
+        <Route path="*" element={<RouteGuard />} />
       </Routes>
     </>
   );

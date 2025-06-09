@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const slice = createSlice({
-  name: "networks",
+  name: "network",
   initialState: {
     all: [],
     mainnets: [],
@@ -28,7 +28,7 @@ const slice = createSlice({
       state.loading = true;
     },
     fetchMainnetsSuccess: (state, { payload }) => {
-      state.mainnets = payload;
+      state.mainnets = payload.map((n) => ({ ...n, enabled: true }));
       state.loading = false;
     },
     fetchMainnetsFailure: (state, { payload }) => {
@@ -40,7 +40,7 @@ const slice = createSlice({
       state.loading = true;
     },
     fetchTestnetsSuccess: (state, { payload }) => {
-      state.testnets = payload;
+      state.testnets = payload.map((n) => ({ ...n, enabled: false }));
       state.loading = false;
     },
     fetchTestnetsFailure: (state, { payload }) => {
@@ -59,6 +59,14 @@ const slice = createSlice({
       state.error = payload;
       state.loading = false;
     },
+
+    toggleNetworkEnabled(state, { payload: { id } }) {
+      ["mainnets", "testnets"].forEach((list) => {
+        state[list] = state[list].map((n) =>
+          n.id === id ? { ...n, enabled: !n.enabled } : n
+        );
+      });
+    },
   },
 });
 
@@ -75,6 +83,8 @@ export const {
   fetchNetworkByIdStart,
   fetchNetworkByIdSuccess,
   fetchNetworkByIdFailure,
+
+  toggleNetworkEnabled,
 } = slice.actions;
 
 export default slice.reducer;

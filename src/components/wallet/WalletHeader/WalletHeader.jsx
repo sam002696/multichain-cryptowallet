@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   MagnifyingGlassIcon,
   EllipsisHorizontalIcon,
@@ -7,10 +7,12 @@ import { FiShield } from "react-icons/fi";
 
 import Button from "../../common/Button";
 import DropdownMenu from "../../common/DropdownMenu";
-import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import { useSession } from "../../../context/SessionContext";
 
 const WalletHeader = () => {
-  const dispatch = useDispatch();
+  const { destroySession } = useSession();
+  const navigate = useNavigate();
   // Dummy mnemonics
   const mnemonicItems = [
     { id: "m1", label: "Mnemonic 1", isSelected: true },
@@ -42,7 +44,8 @@ const WalletHeader = () => {
   };
 
   const handleManageNetworks = () => {
-    console.log("Opening network management modal…");
+    console.log("clicked");
+    navigate("/network/manage-network");
   };
 
   const handleAddresses = () => {
@@ -50,12 +53,9 @@ const WalletHeader = () => {
   };
 
   const handleLock = () => {
-    console.log("Locking wallet…");
+    destroySession(); // End the session
+    navigate("/unlock"); // Redirect to unlock page
   };
-
-  useEffect(() => {
-    dispatch({ type: "networks/fetchAll" });
-  }, [dispatch]);
 
   return (
     <>

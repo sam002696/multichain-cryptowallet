@@ -94,7 +94,7 @@ export const SessionProvider = ({ children }) => {
   const createSession = async (password) => {
     setIsLoading(true);
     const sessionToken = `session_${Date.now()}`;
-    const sessionExpiry = Date.now() + 60 * 60 * 1000; // 30 minutes
+    const sessionExpiry = Date.now() + 5 * 60 * 60 * 1000;
     localStorage.setItem("sessionToken", sessionToken);
     localStorage.setItem("sessionExpiry", sessionExpiry);
     setIsSessionValid(true);

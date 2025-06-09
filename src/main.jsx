@@ -5,13 +5,17 @@ import App from "./App.jsx";
 import { LoadingProvider } from "./context/LoadingContext.jsx";
 import { SessionProvider } from "./context/SessionContext.jsx";
 import { BrowserRouter } from "react-router";
+import { Provider } from "react-redux";
+import store from "./store/store.js";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <LoadingProvider>
-      <SessionProvider>
-        <App />
-      </SessionProvider>
-    </LoadingProvider>
+    <Provider store={store}>
+      <LoadingProvider>
+        <SessionProvider>
+          <App />
+        </SessionProvider>
+      </LoadingProvider>
+    </Provider>
   </BrowserRouter>
 );

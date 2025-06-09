@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MagnifyingGlassIcon,
   EllipsisHorizontalIcon,
@@ -7,8 +7,10 @@ import { FiShield } from "react-icons/fi";
 
 import Button from "../../common/Button";
 import DropdownMenu from "../../common/DropdownMenu";
+import { useDispatch } from "react-redux";
 
 const WalletHeader = () => {
+  const dispatch = useDispatch();
   // Dummy mnemonics
   const mnemonicItems = [
     { id: "m1", label: "Mnemonic 1", isSelected: true },
@@ -50,6 +52,10 @@ const WalletHeader = () => {
   const handleLock = () => {
     console.log("Locking wallet…");
   };
+
+  useEffect(() => {
+    dispatch({ type: "networks/fetchAll" });
+  }, [dispatch]);
 
   return (
     <>

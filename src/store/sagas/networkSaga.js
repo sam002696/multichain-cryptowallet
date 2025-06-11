@@ -35,6 +35,7 @@ function* fetchNetworksSaga() {
  */
 function* fetchMainnetsSaga() {
   try {
+    localStorage.removeItem("networkEnabled");
     yield put(fetchMainnetsStart());
     const response = yield call(() => fetcher(NETWORK_API.GET_MAINNETS));
     yield put(fetchMainnetsSuccess(response.data));
@@ -48,6 +49,7 @@ function* fetchMainnetsSaga() {
  */
 function* fetchTestnetsSaga() {
   try {
+    localStorage.removeItem("networkEnabled");
     yield put(fetchTestnetsStart());
     const response = yield call(() => fetcher(NETWORK_API.GET_TESTNETS));
     yield put(fetchTestnetsSuccess(response.data));

@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const LOCAL_KEY = "networkEnabled";
+
 const slice = createSlice({
   name: "network",
   initialState: {
@@ -24,48 +26,74 @@ const slice = createSlice({
       state.loading = false;
     },
 
-    fetchMainnetsStart: (state) => {
+    // ───────────────────────────────────────
+    // FETCH MAINNETS
+    // ───────────────────────────────────────
+    fetchMainnetsStart(state) {
       state.loading = true;
+      state.error = null;
     },
-    fetchMainnetsSuccess: (state, { payload }) => {
-      state.mainnets = payload.map((n) => ({ ...n, enabled: true }));
+    fetchMainnetsSuccess(state, { payload }) {
       state.loading = false;
-    },
-    fetchMainnetsFailure: (state, { payload }) => {
-      state.error = payload;
-      state.loading = false;
-    },
 
-    fetchTestnetsStart: (state) => {
-      state.loading = true;
-    },
-    fetchTestnetsSuccess: (state, { payload }) => {
-      state.testnets = payload.map((n) => ({ ...n, enabled: false }));
-      state.loading = false;
-    },
-    fetchTestnetsFailure: (state, { payload }) => {
-      state.error = payload;
-      state.loading = false;
-    },
-
-    fetchNetworkByIdStart: (state) => {
-      state.loading = true;
-    },
-    fetchNetworkByIdSuccess: (state, { payload }) => {
-      state.current = payload;
-      state.loading = false;
-    },
-    fetchNetworkByIdFailure: (state, { payload }) => {
-      state.error = payload;
-      state.loading = false;
-    },
-
-    toggleNetworkEnabled(state, { payload: { id } }) {
-      ["mainnets", "testnets"].forEach((list) => {
-        state[list] = state[list].map((n) =>
-          n.id === id ? { ...n, enabled: !n.enabled } : n
-        );
+      // Build pref map and populate Redux list
+      const prefs = {};
+      state.mainnets = payload.map((n) => {
+        prefs[n.id] = { ...n };
+        return { ...n, enabled: true };
       });
+
+      // Persist ONLY the mainnet objects
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(prefs));
+    },
+    fetchMainnetsFailure(state, { payload }) {
+      state.loading = false;
+      state.error = payload;
+    },
+
+    // ───────────────────────────────────────
+    // FETCH TESTNETS
+    // ───────────────────────────────────────
+    fetchTestnetsStart(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchTestnetsSuccess(state, { payload }) {
+      state.loading = false;
+
+      const prefs = {};
+      state.testnets = payload.map((n) => {
+        prefs[n.id] = { ...n };
+        return { ...n, enabled: true };
+      });
+
+      // Persist ONLY the testnet objects
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(prefs));
+    },
+    fetchTestnetsFailure(state, { payload }) {
+      state.loading = false;
+      state.error = payload;
+    },
+
+    // ───────────────────────────────────────
+    // TOGGLE NETWORK
+    // ───────────────────────────────────────
+
+    toggleNetworkEnabled(state, { payload: { network, listType } }) {
+      // Flipping in the correct list only
+      state[listType] = state[listType].map((n) =>
+        n.id === network.id ? { ...n, enabled: !n.enabled } : n
+      );
+
+      // Rebuilding prefs *only* from that list
+      const newPrefs = {};
+      state[listType]
+        .filter((n) => n.enabled)
+        .forEach(({ ...rest }) => {
+          newPrefs[rest.id] = rest;
+        });
+
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(newPrefs));
     },
   },
 });

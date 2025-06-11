@@ -17,6 +17,8 @@ const ManageNetwork = () => {
   const loading = useSelector((s) => s.network.loading);
   const error = useSelector((s) => s.network.error);
 
+  const listType = showTestnets ? "testnets" : "mainnets";
+
   // On mount, fetch mainnets by default
   useEffect(() => {
     dispatch({ type: "networks/fetchMainnets" });
@@ -32,8 +34,8 @@ const ManageNetwork = () => {
   }, [dispatch, showTestnets]);
 
   // Toggle handler
-  const onToggle = (id) => {
-    dispatch(toggleNetworkEnabled({ id }));
+  const onToggle = (network) => {
+    dispatch(toggleNetworkEnabled({ network, listType }));
   };
 
   // Filter locally by name/chain
@@ -86,7 +88,7 @@ const ManageNetwork = () => {
                   </div>
                   <Switch
                     checked={network.enabled}
-                    onChange={() => onToggle(network.id)}
+                    onChange={() => onToggle(network)}
                     className={`group relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
                       network.enabled ? "bg-purple-700" : "bg-gray-500"
                     } focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2`}

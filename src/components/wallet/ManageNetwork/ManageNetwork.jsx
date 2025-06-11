@@ -5,45 +5,55 @@ import LayoutContainer from "../../Layout/LayoutContainer";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleNetworkEnabled } from "../../../store/slices/networkSlice";
 
+const SHOW_KEY = "showTestnets";
+
 const ManageNetwork = () => {
   const dispatch = useDispatch();
-  const [filter, setFilter] = useState("");
-  const [showTestnets, setShowTestnets] = useState(false);
 
-  // Select the appropriate list from Redux
+  // — State & localStorage-backed toggle —
+  const [filter, setFilter] = useState("");
+  const [showTestnets, setShowTestnets] = useState(() => {
+    try {
+      const raw = localStorage.getItem(SHOW_KEY);
+      return raw !== null ? JSON.parse(raw) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  // — Redux selectors —
   const networks = useSelector((state) =>
     showTestnets ? state.network.testnets : state.network.mainnets
   );
-  const loading = useSelector((s) => s.network.loading);
-  const error = useSelector((s) => s.network.error);
+  const loading = useSelector((state) => state.network.loading);
+  const error = useSelector((state) => state.network.error);
 
+  // — Derived values —
   const listType = showTestnets ? "testnets" : "mainnets";
+  const filtered = networks.filter((n) => {
+    const term = filter.toLowerCase();
+    return (
+      n.name.toLowerCase().includes(term) ||
+      n.chain.toLowerCase().includes(term)
+    );
+  });
 
-  // On mount, fetch mainnets by default
+  // — Side effects —
   useEffect(() => {
-    dispatch({ type: "networks/fetchMainnets" });
-  }, [dispatch]);
+    // Fetch the correct list on mount and whenever mode changes
+    const actionType = showTestnets
+      ? "networks/fetchTestnets"
+      : "networks/fetchMainnets";
+    dispatch({ type: actionType });
 
-  // When showTestnets flips, re-fetch
-  useEffect(() => {
-    if (showTestnets) {
-      dispatch({ type: "networks/fetchTestnets" });
-    } else {
-      dispatch({ type: "networks/fetchMainnets" });
-    }
+    // Persist the user’s choice
+    localStorage.setItem(SHOW_KEY, JSON.stringify(showTestnets));
   }, [dispatch, showTestnets]);
 
-  // Toggle handler
+  // — Event handlers —
   const onToggle = (network) => {
     dispatch(toggleNetworkEnabled({ network, listType }));
   };
-
-  // Filter locally by name/chain
-  const filtered = networks.filter(
-    (n) =>
-      n.name.toLowerCase().includes(filter.toLowerCase()) ||
-      n.chain.toLowerCase().includes(filter.toLowerCase())
-  );
 
   return (
     <LayoutContainer outlet="wallet">
@@ -125,5 +135,3 @@ const ManageNetwork = () => {
 };
 
 export default ManageNetwork;
-
-//  dispatch({ type: "networks/fetchAll" });

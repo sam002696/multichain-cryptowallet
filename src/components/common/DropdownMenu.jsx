@@ -46,6 +46,7 @@ const ExtraFooter = ({ type, onManage }) => {
 };
 
 const DropdownMenu = ({
+  selectedNetworkInfo,
   label,
   items,
   onClickItem,
@@ -61,7 +62,7 @@ const DropdownMenu = ({
     <MenuItems className="absolute z-10 mt-2 w-80 origin-top-right rounded-lg bg-gray-800 shadow-lg ring-1 ring-black/5 focus:outline-none cursor-pointer">
       {items && items.length > 0 ? (
         items.map((item) => (
-          <MenuItem key={item.id ?? item.label}>
+          <MenuItem key={item.id}>
             {({ active }) => (
               <button
                 onClick={() => onClickItem(item)}
@@ -71,8 +72,8 @@ const DropdownMenu = ({
                     : "hover:bg-gray-800 text-white"
                 }`}
               >
-                <span className="pl-3 text-lg">{item.label}</span>
-                {item.isSelected && (
+                <span className="pl-3 text-lg">{item.name}</span>
+                {item?.chainId === selectedNetworkInfo?.chainId && (
                   <CheckCircleIcon className="h-5 w-5 text-pink-500" />
                 )}
               </button>

@@ -9,28 +9,23 @@ import Button from "../../common/Button";
 import DropdownMenu from "../../common/DropdownMenu";
 import { useNavigate } from "react-router";
 import { useSession } from "../../../context/SessionContext";
+import { useDispatch, useSelector } from "react-redux";
+import { selectNetwork } from "../../../store/slices/networkSlice";
 
 const WalletHeader = () => {
+  const { selectedNetworkInfo } = useSelector((s) => s.network);
+  const dispatch = useDispatch();
   const { destroySession } = useSession();
   const navigate = useNavigate();
   // Dummy mnemonics
   const mnemonicItems = [
-    { id: "m1", label: "Mnemonic 1", isSelected: true },
-    { id: "m2", label: "Mnemonic 2", isSelected: false },
-    { id: "m3", label: "Mnemonic 3", isSelected: false },
-  ];
-
-  // Dummy networks
-  const networkItems = [
-    { id: "eth", label: "Ethereum Mainnet", isSelected: true },
-    { id: "bsc", label: "Binance Smart Chain", isSelected: false },
-    { id: "polygon", label: "Polygon", isSelected: false },
-    { id: "sol", label: "Solana", isSelected: false },
+    { id: "m1", name: "Mnemonic 1", isSelected: true },
+    { id: "m2", name: "Mnemonic 2", isSelected: false },
+    { id: "m3", name: "Mnemonic 3", isSelected: false },
   ];
 
   // State for selections
   const [selectedMnemonic, setSelectedMnemonic] = useState(mnemonicItems[0]);
-  const [selectedNetwork, setSelectedNetwork] = useState(networkItems[0]);
 
   // Handlers
   const handleMnemonicClick = (item) => {
@@ -39,12 +34,12 @@ const WalletHeader = () => {
   };
 
   const handleChainClick = (item) => {
-    setSelectedNetwork(item);
     console.log("Selected network:", item);
+
+    dispatch(selectNetwork(item));
   };
 
   const handleManageNetworks = () => {
-    console.log("clicked");
     navigate("/network/manage-network");
   };
 
@@ -57,6 +52,10 @@ const WalletHeader = () => {
     navigate("/unlock"); // Redirect to unlock page
   };
 
+  const enabledNetworks = Object.values(
+    JSON.parse(localStorage.getItem("networkEnabled") || "{}") || []
+  );
+
   return (
     <>
       {/* Top row: mnemonic + network selectors */}
@@ -65,7 +64,7 @@ const WalletHeader = () => {
         <div className="flex-1 border-d-color border-dashed border-r p-2 flex items-center">
           <FiShield className="text-purple-400 text-xl mr-2" />
           <DropdownMenu
-            label={selectedMnemonic.label}
+            label={selectedMnemonic.name}
             items={mnemonicItems}
             onClickItem={handleMnemonicClick}
             extra="manage_mnemonics"
@@ -75,8 +74,9 @@ const WalletHeader = () => {
         {/* Network selector */}
         <div className="flex-1 p-2 flex items-center">
           <DropdownMenu
-            label={selectedNetwork.label}
-            items={networkItems}
+            selectedNetworkInfo={selectedNetworkInfo}
+            label={selectedNetworkInfo.name}
+            items={enabledNetworks}
             onClickItem={handleChainClick}
             extra="manage_chains"
             onClickManageNetworks={handleManageNetworks}

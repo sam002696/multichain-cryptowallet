@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { WalletKey } from "../../helpers/WalletKey";
+import getSymbolFromTicker from "../../utils/getSymbolFromTicker";
+import { getBalanceForNetwork } from "../../utils/getBalanceForNetwork";
 
 const LOCAL_KEY = "networkEnabled";
 const SELECTED_KEY = "selectedNetwork";
@@ -15,13 +17,15 @@ function loadShowTestnets() {
 }
 
 function buildSelected(n) {
-  // Helper to build the trimmed-down object
+  const balance = getBalanceForNetwork(n);
+
   return {
     name: n.name,
     hex: "0x" + Number(n.chainId).toString(16),
     rpcUrl: Array.isArray(n.rpc) ? n.rpc[0] : n.rpc,
     account: WalletKey.getEthereumPublicAddress(),
-    balance: 0,
+    balance: balance || 0,
+    ticker: getSymbolFromTicker(n?.nativeCurrency?.symbol),
     networkId: n.networkId,
     chainId: n.chainId,
     token: [],

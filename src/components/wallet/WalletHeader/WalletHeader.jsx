@@ -30,11 +30,11 @@ const WalletHeader = () => {
   // Handlers
   const handleMnemonicClick = (item) => {
     setSelectedMnemonic(item);
-    console.log("Selected mnemonic:", item);
+    // console.log("Selected mnemonic:", item);
   };
 
   const handleChainClick = (item) => {
-    console.log("Selected network:", item);
+    // console.log("Selected network:", item);
 
     dispatch(selectNetwork(item));
   };

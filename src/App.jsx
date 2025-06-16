@@ -4,6 +4,9 @@ import AuthHome from "./components/auth/AuthHome/AuthHome";
 import PasswordUnlock from "./components/wallet/Unlock/PasswordUnlock";
 import WalletDashboard from "./components/wallet/WalletDashboard/WalletDashboard";
 import ManageNetwork from "./components/wallet/ManageNetwork/ManageNetwork";
+import Send from "./components/wallet/TransactionsActions/send/send";
+import SendAmountAddressForm from "./components/wallet/TransactionsActions/send/SendAmountAddressForm/SendAmountAddressForm";
+import SendCryptoTokenConfirm from "./components/wallet/TransactionsActions/send/SendCryptoTokenConfirm/SendCryptoTokenConfirm";
 
 function App() {
   return (
@@ -23,6 +26,13 @@ function App() {
 
         <Route path="/wallet" element={<RouteGuard target="wallet" />}>
           <Route index element={<WalletDashboard />} />
+
+          <Route path="send">
+            <Route index element={<Send />} />
+            <Route path=":id" element={<SendAmountAddressForm />} />
+            {/* New Confirm Route */}
+            <Route path="confirm" element={<SendCryptoTokenConfirm />} />
+          </Route>
         </Route>
 
         {/* Default Route */}

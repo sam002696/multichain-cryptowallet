@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { Connection } from "@solana/web3.js";
 
-const INFURA_KEY = "75573f1a11f84a848d4e7292fe2fb5b9";
+const INFURA_KEY = "0129144c08824eccb3b15231e2f14ce0";
 
 export const providers = {
   // EVM Networks

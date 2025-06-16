@@ -1,30 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { WalletKey } from "../../helpers/WalletKey";
 import getSymbolFromTicker from "../../utils/getSymbolFromTicker";
-import { getBalanceForNetwork } from "../../utils/getBalanceForNetwork";
 
 const LOCAL_KEY = "networkEnabled";
 const SELECTED_KEY = "selectedNetwork";
 const SHOW_KEY = "showTestnets";
 
-function loadShowTestnets() {
-  try {
-    const raw = localStorage.getItem(SHOW_KEY);
-    return raw !== null ? JSON.parse(raw) : false;
-  } catch {
-    return false;
-  }
-}
+// function loadShowTestnets() {
+//   try {
+//     const raw = localStorage.getItem(SHOW_KEY);
+//     return raw !== null ? JSON.parse(raw) : false;
+//   } catch {
+//     return false;
+//   }
+// }
 
-function buildSelected(n) {
-  const balance = getBalanceForNetwork(n);
-
+export function buildSelected(n, balance = 0) {
   return {
     name: n.name,
     hex: "0x" + Number(n.chainId).toString(16),
     rpcUrl: Array.isArray(n.rpc) ? n.rpc[0] : n.rpc,
     account: WalletKey.getEthereumPublicAddress(),
-    balance: balance || 0,
+    balance: Number(balance ?? 0),
     ticker: getSymbolFromTicker(n?.nativeCurrency?.symbol),
     networkId: n.networkId,
     chainId: n.chainId,
@@ -41,27 +38,7 @@ const slice = createSlice({
     loading: false,
     error: null,
     enabledNetworks: JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"),
-    selectedNetworkInfo: JSON.parse(
-      localStorage.getItem(SELECTED_KEY) ||
-        JSON.stringify(
-          buildSelected(
-            // initial fallback:
-            loadShowTestnets()
-              ? {
-                  name: "Sepolia Testnet",
-                  chainId: 11155111,
-                  networkId: 11155111,
-                  rpc: ["https://sepolia.infura.io/v3/YOUR_KEY"],
-                }
-              : {
-                  name: "Ethereum Mainnet",
-                  chainId: 1,
-                  networkId: 1,
-                  rpc: ["https://mainnet.infura.io/v3/YOUR_KEY"],
-                }
-          )
-        )
-    ),
+    selectedNetworkInfo: JSON.parse(localStorage.getItem(SELECTED_KEY)) || null,
   },
   reducers: {
     fetchNetworksStart: (state) => {
@@ -77,34 +54,24 @@ const slice = createSlice({
       state.loading = false;
     },
 
-    // ─── FETCH MAINNETS ─────────────────────────
     fetchMainnetsStart(state) {
       state.loading = true;
       state.error = null;
     },
     fetchMainnetsSuccess(state, { payload }) {
       state.loading = false;
-      // build enabled map
       const prefs = {};
       state.mainnets = payload.map((n) => {
         prefs[n.id] = { ...n };
         return { ...n, enabled: true };
       });
       localStorage.setItem(LOCAL_KEY, JSON.stringify(prefs));
-
-      // auto-select first mainnet
-      if (payload.length) {
-        const sel = buildSelected(payload[0]);
-        state.selectedNetworkInfo = sel;
-        localStorage.setItem(SELECTED_KEY, JSON.stringify(sel));
-      }
     },
     fetchMainnetsFailure(state, { payload }) {
       state.loading = false;
       state.error = payload;
     },
 
-    // ─── FETCH TESTNETS ─────────────────────────
     fetchTestnetsStart(state) {
       state.loading = true;
       state.error = null;
@@ -117,20 +84,12 @@ const slice = createSlice({
         return { ...n, enabled: true };
       });
       localStorage.setItem(LOCAL_KEY, JSON.stringify(prefs));
-
-      // auto-select first testnet
-      if (payload.length) {
-        const sel = buildSelected(payload[0]);
-        state.selectedNetworkInfo = sel;
-        localStorage.setItem(SELECTED_KEY, JSON.stringify(sel));
-      }
     },
     fetchTestnetsFailure(state, { payload }) {
       state.loading = false;
       state.error = payload;
     },
 
-    // ─── TOGGLE NETWORK ─────────────────────────
     toggleNetworkEnabled(state, { payload: { network, listType } }) {
       state[listType] = state[listType].map((n) =>
         n.id === network.id ? { ...n, enabled: !n.enabled } : n
@@ -144,11 +103,9 @@ const slice = createSlice({
       localStorage.setItem(LOCAL_KEY, JSON.stringify(newPrefs));
     },
 
-    // ─── MANUAL SELECT (if needed elsewhere) ────
-    selectNetwork(state, { payload: n }) {
-      const sel = buildSelected(n);
-      state.selectedNetworkInfo = sel;
-      localStorage.setItem(SELECTED_KEY, JSON.stringify(sel));
+    selectNetwork(state, { payload }) {
+      state.selectedNetworkInfo = payload;
+      localStorage.setItem(SELECTED_KEY, JSON.stringify(payload));
     },
   },
 });
@@ -167,7 +124,6 @@ export const {
   fetchNetworkByIdSuccess,
   fetchNetworkByIdFailure,
   selectNetwork,
-
   toggleNetworkEnabled,
 } = slice.actions;
 

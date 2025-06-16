@@ -10,10 +10,10 @@ export async function getBalanceForNetwork(n) {
     let provider = providers[n.chainId];
 
     // Fallback: create a new one from network config
-    if (!provider && n.rpc) {
-      const rpcUrl = Array.isArray(n.rpc) ? n.rpc[0] : n.rpc;
-      provider = new ethers.JsonRpcProvider(rpcUrl);
-    }
+    // if (!provider && n.rpc) {
+    //   const rpcUrl = Array.isArray(n.rpc) ? n.rpc[0] : n.rpc;
+    //   provider = new ethers.JsonRpcProvider(rpcUrl);
+    // }
 
     if (!provider) {
       throw new Error(`No provider found for chainId: ${n.chainId}`);

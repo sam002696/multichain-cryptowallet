@@ -10,7 +10,7 @@ import DropdownMenu from "../../common/DropdownMenu";
 import { useNavigate } from "react-router";
 import { useSession } from "../../../context/SessionContext";
 import { useDispatch, useSelector } from "react-redux";
-import { selectNetwork } from "../../../store/slices/networkSlice";
+// import { selectNetwork } from "../../../store/slices/networkSlice";
 
 const WalletHeader = () => {
   const { selectedNetworkInfo } = useSelector((s) => s.network);
@@ -36,7 +36,7 @@ const WalletHeader = () => {
   const handleChainClick = (item) => {
     // console.log("Selected network:", item);
 
-    dispatch(selectNetwork(item));
+    dispatch({ type: "networks/selectNetworkAsync", payload: item });
   };
 
   const handleManageNetworks = () => {
@@ -55,6 +55,8 @@ const WalletHeader = () => {
   const enabledNetworks = Object.values(
     JSON.parse(localStorage.getItem("networkEnabled") || "{}") || []
   );
+
+  console.log("selectedNetworkInfo", selectedNetworkInfo);
 
   return (
     <>
@@ -75,7 +77,7 @@ const WalletHeader = () => {
         <div className="flex-1 p-2 flex items-center">
           <DropdownMenu
             selectedNetworkInfo={selectedNetworkInfo}
-            label={selectedNetworkInfo.name}
+            label={selectedNetworkInfo?.name}
             items={enabledNetworks}
             onClickItem={handleChainClick}
             extra="manage_chains"

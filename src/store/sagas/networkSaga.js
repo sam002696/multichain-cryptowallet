@@ -1,5 +1,7 @@
 import { call, put, takeLatest } from "redux-saga/effects";
 import fetcher from "../../services/fetcher";
+import { getBalanceForNetwork } from "../../utils/getBalanceForNetwork";
+import { buildSelected } from "../slices/networkSlice";
 
 import {
   fetchNetworksStart,
@@ -14,7 +16,9 @@ import {
   fetchNetworkByIdStart,
   fetchNetworkByIdSuccess,
   fetchNetworkByIdFailure,
+  selectNetwork,
 } from "../slices/networkSlice";
+
 import { NETWORK_API } from "../../utils/Api/api";
 
 /**
@@ -39,6 +43,13 @@ function* fetchMainnetsSaga() {
     yield put(fetchMainnetsStart());
     const response = yield call(() => fetcher(NETWORK_API.GET_MAINNETS));
     yield put(fetchMainnetsSuccess(response.data));
+
+    if (response.data.length > 0) {
+      yield put({
+        type: "networks/selectNetworkAsync",
+        payload: response.data[0],
+      });
+    }
   } catch (err) {
     yield put(fetchMainnetsFailure(err.message || "Failed to load mainnets."));
   }
@@ -53,6 +64,13 @@ function* fetchTestnetsSaga() {
     yield put(fetchTestnetsStart());
     const response = yield call(() => fetcher(NETWORK_API.GET_TESTNETS));
     yield put(fetchTestnetsSuccess(response.data));
+
+    if (response.data.length > 0) {
+      yield put({
+        type: "networks/selectNetworkAsync",
+        payload: response.data[0],
+      });
+    }
   } catch (err) {
     yield put(fetchTestnetsFailure(err.message || "Failed to load testnets."));
   }
@@ -79,6 +97,19 @@ function* fetchNetworkByIdSaga({ payload }) {
 }
 
 /**
+ * 5. Async selection of network with balance resolution
+ */
+function* selectNetworkSaga({ payload }) {
+  try {
+    const balance = yield call(getBalanceForNetwork, payload);
+    const selected = buildSelected(payload, balance);
+    yield put(selectNetwork(selected));
+  } catch (err) {
+    console.error("Error resolving balance for selected network:", err);
+  }
+}
+
+/**
  * Root network saga
  */
 export default function* networkSaga() {
@@ -86,4 +117,5 @@ export default function* networkSaga() {
   yield takeLatest("networks/fetchMainnets", fetchMainnetsSaga);
   yield takeLatest("networks/fetchTestnets", fetchTestnetsSaga);
   yield takeLatest("networks/fetchById", fetchNetworkByIdSaga);
+  yield takeLatest("networks/selectNetworkAsync", selectNetworkSaga);
 }

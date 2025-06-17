@@ -4,6 +4,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import getSymbolFromTicker from "../../../../../utils/getSymbolFromTicker";
 import LayoutContainer from "../../../../Layout/LayoutContainer";
 import AccessDenied from "../../../../common/AccessDenied";
+import { useLocation, useNavigate } from "react-router";
 
 const DUMMY_NETWORK = {
   name: "Ethereum Mainnet",
@@ -15,12 +16,14 @@ const DUMMY_NETWORK = {
 };
 
 const SendAmountAddressForm = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [recipientError, setRecipientError] = useState("");
   const [amountError, setAmountError] = useState("");
 
-  const network = DUMMY_NETWORK;
+  const network = location.state;
 
   const validateRecipient = (value) => {
     if (!value.trim()) {
@@ -68,16 +71,28 @@ const SendAmountAddressForm = () => {
   const handlePreview = (e) => {
     e.preventDefault();
 
-    const validRecipient = validateRecipient(recipientAddress);
-    const validAmount = validateAmount(amount);
+    // const validRecipient = validateRecipient(recipientAddress);
+    // const validAmount = validateAmount(amount);
 
-    if (validRecipient && validAmount) {
-      alert(
-        `Ready to send ${amount} ${getSymbolFromTicker(
-          network.nativeCurrency.symbol
-        )} to ${recipientAddress}`
-      );
-    }
+    // if (validRecipient && validAmount) {
+    //   alert(
+    //     `Ready to send ${amount} ${getSymbolFromTicker(
+    //       network.nativeCurrency.symbol
+    //     )} to ${recipientAddress}`
+    //   );
+    // }
+
+    // if (!validRecipient || !validAmount) {
+    //   return;
+    // }
+
+    navigate("/wallet/send/confirm", {
+      state: {
+        network,
+        address: recipientAddress,
+        amount,
+      },
+    });
   };
 
   const handleMaxBalance = () => {
@@ -87,19 +102,21 @@ const SendAmountAddressForm = () => {
 
   if (!network) return <AccessDenied />;
 
+  console.log("network", network);
+
   return (
     <LayoutContainer>
       <div className="flex flex-col items-center p-4 pt-8 mx-auto bg-[#06033E] shadow-md rounded-md">
         {/* Header */}
         <div className="flex items-center justify-between w-full mb-6">
           <button
-            onClick={() => alert("Back clicked")}
+            onClick={() => navigate(-1)}
             className="text-gray-400 hover:text-white"
           >
             <ArrowLeftIcon className="w-6 h-6" />
           </button>
           <h1 className="text-white font-semibold">
-            Send {getSymbolFromTicker(network.nativeCurrency.symbol)}
+            Send {getSymbolFromTicker(network.symbol)}
           </h1>
           <div />
         </div>
@@ -108,7 +125,7 @@ const SendAmountAddressForm = () => {
         <div className="mt-2 flex flex-col items-center">
           <div className="w-14 h-14 mb-2 bg-gray-300 rounded-full flex items-center justify-center">
             <span className="text-black font-bold">
-              {getSymbolFromTicker(network.nativeCurrency.symbol)}
+              {getSymbolFromTicker(network.symbol)}
             </span>
           </div>
           <p className="text-gray-400 text-sm">on {network.name}</p>
@@ -149,8 +166,7 @@ const SendAmountAddressForm = () => {
             <p className="mt-2">
               Balance:{" "}
               <span className="text-green-400">
-                {network.balance}{" "}
-                {getSymbolFromTicker(network.nativeCurrency.symbol)}
+                {network.balance} {getSymbolFromTicker(network.symbol)}
               </span>
             </p>
             <button

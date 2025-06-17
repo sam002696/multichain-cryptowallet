@@ -20,7 +20,7 @@ const WalletBalance = () => {
   return (
     <div className="text-center pt-5 flex justify-center items-center screen-fit-9">
       <p className="text-3xl font-bold py-5">
-        {networkInfo.balance} {networkInfo.ticker}
+        {networkInfo?.balance} {networkInfo?.ticker}
       </p>
 
       <button onClick={handleRefreshBalance} className="ml-4">

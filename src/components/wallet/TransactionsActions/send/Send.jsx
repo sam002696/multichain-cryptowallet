@@ -1,59 +1,78 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import {
   ArrowLeftIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import LayoutContainer from "../../../Layout/LayoutContainer";
-
-const DUMMY_NETWORKS = [
-  {
-    chainId: 1,
-    name: "Ethereum Mainnet",
-    symbol: "ETH",
-    balance: "0.23",
-    price: "3120.45",
-    percentChange24h: 2.56,
-  },
-  {
-    chainId: 137,
-    name: "Polygon",
-    symbol: "MATIC",
-    balance: "129.44",
-    price: "0.94",
-    percentChange24h: -1.73,
-  },
-  {
-    chainId: 56,
-    name: "Binance Smart Chain",
-    symbol: "BNB",
-    balance: "3.12",
-    price: "602.33",
-    percentChange24h: 0.88,
-  },
-];
+import { getBalanceForNetwork } from "../../../../utils/getBalanceForNetwork";
+import getSymbolFromTicker from "../../../../utils/getSymbolFromTicker";
 
 const Send = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [networks, setNetworks] = useState([]);
+
+  // Load networks from localStorage and fetch balances
+  useEffect(() => {
+    const raw = localStorage.getItem("networkEnabled");
+    if (!raw) return;
+
+    let storedNetworks;
+    try {
+      const parsed = JSON.parse(raw);
+      storedNetworks = Object.values(parsed)
+        .map((obj) => {
+          if (obj && obj.chainId && obj.name && obj.nativeCurrency?.symbol) {
+            return {
+              chainId: obj.chainId,
+              name: obj.name,
+              symbol: obj.nativeCurrency.symbol,
+              rpc: obj.rpc,
+              price: 0,
+              percentChange24h: 0,
+              original: obj,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+    } catch (err) {
+      console.error("Failed to parse networkEnabled from localStorage:", err);
+      return;
+    }
+
+    const fetchBalances = async () => {
+      const networksWithBalance = await Promise.all(
+        storedNetworks.map(async (net) => {
+          const balance = await getBalanceForNetwork(net);
+          return {
+            ...net,
+            balance,
+          };
+        })
+      );
+      setNetworks(networksWithBalance);
+    };
+
+    fetchBalances();
+  }, []);
 
   const filteredNetworks = useMemo(() => {
-    return DUMMY_NETWORKS.filter(
+    return networks.filter(
       (n) =>
         n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         n.symbol.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, networks]);
 
   const handleSelectNetwork = (network) => {
-    console.log("Selected:", network);
     navigate(`/wallet/send/${network.chainId}`, { state: network });
   };
 
   return (
     <LayoutContainer>
       <div className="p-6 max-w-lg mx-auto bg-[#06033E] shadow-md rounded-md">
-        {/* Header */}
         <div className="flex items-center space-x-2 mb-4">
           <button
             onClick={() => navigate(-1)}
@@ -66,7 +85,6 @@ const Send = () => {
           </h1>
         </div>
 
-        {/* Search Bar */}
         <div className="relative mb-4">
           <MagnifyingGlassIcon className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
           <input
@@ -78,7 +96,6 @@ const Send = () => {
           />
         </div>
 
-        {/* List */}
         <div className="w-full h-96 overflow-auto pr-2 mt-5">
           {filteredNetworks.map((network, index) => (
             <div
@@ -90,7 +107,6 @@ const Send = () => {
               }`}
               onClick={() => handleSelectNetwork(network)}
             >
-              {/* Left: Name, Price, Change */}
               <div>
                 <p className="text-white font-medium">{network.name}</p>
                 <p className="text-white text-sm">${network.price}</p>
@@ -106,10 +122,10 @@ const Send = () => {
                 </p>
               </div>
 
-              {/* Right: Balance */}
               <div className="text-right">
                 <p className="text-gray-300 text-xs">
-                  {network.balance} {network.symbol}
+                  {parseFloat(network.balance).toFixed(4)}{" "}
+                  {getSymbolFromTicker(network.symbol)}
                 </p>
                 <p className="text-white text-sm">
                   $

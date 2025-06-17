@@ -1,24 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { ArrowLeftIcon, PencilIcon } from "@heroicons/react/24/outline";
 
 import getSymbolFromTicker from "../../../../../utils/getSymbolFromTicker";
 import { truncateAddress } from "../../../../../utils/addressTruncateUtils";
 import LayoutContainer from "../../../../Layout/LayoutContainer";
+import AccessDenied from "../../../../common/AccessDenied";
 import EditGasEstimation from "../GasFeePriorityModal/EditGasEstimation";
-
-const DUMMY_NETWORK = {
-  name: "Ethereum Mainnet",
-  chainId: 1,
-  address: "0x1234abcd5678efgh9012ijklmnopqrstuvwx",
-  balance: "2.134",
-  nativeCurrency: {
-    symbol: "ETH",
-  },
-};
-
-const DUMMY_RECIPIENT = "0x9876abcd4321efgh5678ijklmnopqrstuvwx";
-const DUMMY_AMOUNT = "0.5";
 
 const DUMMY_GAS_OPTIONS = [
   {
@@ -45,22 +33,26 @@ const DUMMY_GAS_OPTIONS = [
 ];
 
 const SendCryptoTokenConfirm = () => {
+  //  Extract data from navigation state
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { network, address, amount } = location.state || {};
+
   const [open, setOpen] = useState(false);
   const [gasOptions, setGasOptions] = useState(DUMMY_GAS_OPTIONS);
   const [selectedGasFee, setSelectedGasFee] = useState("Market");
   const [gasMarket, setGasMarket] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const network = DUMMY_NETWORK;
-  const address = DUMMY_RECIPIENT;
-  const amount = DUMMY_AMOUNT;
-
   const fromAddress = truncateAddress(network.address);
   const toAddress = truncateAddress(address);
-  const symbol = getSymbolFromTicker(network.nativeCurrency?.symbol);
+  const symbol = getSymbolFromTicker(network?.symbol);
   const estimatedFee = gasMarket?.maxFee || "Loading...";
-  const totalUsd = "$0.00"; // Placeholder
+  const totalUsd = network.price
+    ? `$${(parseFloat(amount) * parseFloat(network.price)).toFixed(2)}`
+    : "$0.00";
 
   useEffect(() => {
     const selected = gasOptions.find((g) => g.type === selectedGasFee);
@@ -68,6 +60,11 @@ const SendCryptoTokenConfirm = () => {
       setGasMarket(selected);
     }
   }, [gasOptions, selectedGasFee]);
+
+  //  Handle missing state
+  if (!network || !address || !amount) {
+    return <AccessDenied />;
+  }
 
   const handleGasFee = () => {
     setOpen(true);
@@ -107,7 +104,8 @@ const SendCryptoTokenConfirm = () => {
             </div>
             <div>
               <p className="text-white">
-                {network.balance} {symbol} ($0.00)
+                {network.balance} {symbol} ($
+                {(network.price * network.balance).toFixed(2)})
               </p>
             </div>
           </div>

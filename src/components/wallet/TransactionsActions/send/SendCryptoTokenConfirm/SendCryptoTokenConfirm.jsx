@@ -7,6 +7,7 @@ import { truncateAddress } from "../../../../../utils/addressTruncateUtils";
 import LayoutContainer from "../../../../Layout/LayoutContainer";
 import AccessDenied from "../../../../common/AccessDenied";
 import EditGasEstimation from "../GasFeePriorityModal/EditGasEstimation";
+import { useSelector } from "react-redux";
 
 const DUMMY_GAS_OPTIONS = [
   {
@@ -33,6 +34,8 @@ const DUMMY_GAS_OPTIONS = [
 ];
 
 const SendCryptoTokenConfirm = () => {
+  const [transactionReceiptInfo, setTransactionReceiptInfo] = useState({});
+  const { selectedNetworkInfo } = useSelector((s) => s.network);
   //  Extract data from navigation state
 
   const navigate = useNavigate();
@@ -46,7 +49,7 @@ const SendCryptoTokenConfirm = () => {
   const [gasMarket, setGasMarket] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const fromAddress = truncateAddress(network.address);
+  const fromAddress = truncateAddress(selectedNetworkInfo?.account);
   const toAddress = truncateAddress(address);
   const symbol = getSymbolFromTicker(network?.symbol);
   const estimatedFee = gasMarket?.maxFee || "Loading...";
@@ -72,14 +75,29 @@ const SendCryptoTokenConfirm = () => {
 
   const confirmTransaction = () => {
     setLoading(true);
-    setTimeout(() => {
-      alert(
-        `✅ Confirmed sending ${amount} ${symbol} to ${address} with fee ${estimatedFee}`
-      );
-      setLoading(false);
-      navigate("/wallet");
-    }, 1200);
+    // setTimeout(() => {
+    //   alert(
+    //     `✅ Confirmed sending ${amount} ${symbol} to ${address} with fee ${estimatedFee}`
+    //   );
+    //   setLoading(false);
+    //   navigate("/wallet");
+    // }, 1200);
+
+    // confirmEthereumTransaction({
+    //   network,
+    //   address,
+    //   amount,
+    //   Ethkey,
+    //   web3,
+    //   dispatch,
+    //   navigate,
+    //   setLoading,
+    //   setTransactionReceiptInfo,
+    //   transactionSendInfo,
+    // });
   };
+
+  console.log("transactionReceipt :>> ", transactionReceiptInfo);
 
   return (
     <>
